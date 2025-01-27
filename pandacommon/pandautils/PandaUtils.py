@@ -94,7 +94,7 @@ def batched(iterable, n, *, strict=False):
             raise ValueError("batched(): incomplete batch")
         yield batch
 
-def get_sql_IN_bind_variables(values, prefix: str) -> tuple[str, dict]:
+def get_sql_IN_bind_variables(values, prefix: str, value_as_suffix=False) -> tuple[str, dict]:
     """
     Get the comma-separated string expression with bind variables to be used with SQL IN-condition and the corresponding variable map
     E.g. get_sql_IN_bind_variables(["done", "finished", "aborted"], prefix=":status_") will return the tuple:
@@ -102,7 +102,8 @@ def get_sql_IN_bind_variables(values, prefix: str) -> tuple[str, dict]:
 
     Args:
         values (iterable): list or other iterables of the values
-        prefix (str): prefix of variable name 
+        prefix (str): prefix of variable name
+        value_as_suffix (bool): if True, use the string of value as suffix of variable name, otherwise use the number index
 
     Returns:
         str: comma-separated string of variable names of all bind variables, to be put inside the parentheses of SQL IN (...)
@@ -111,7 +112,10 @@ def get_sql_IN_bind_variables(values, prefix: str) -> tuple[str, dict]:
     var_name_list = []
     ret_var_map = {}
     for j, value in enumerate(values):
-        var_name = f"{prefix}{j}"
+        if value_as_suffix:
+            var_name = f"{prefix}{str(value)}"
+        else:
+            var_name = f"{prefix}{j}"
         var_name_list.append(var_name)
         ret_var_map[var_name] = value
     ret_var_names_str = ",".join(var_name_list)
